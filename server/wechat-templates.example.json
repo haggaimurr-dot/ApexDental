@@ -1,0 +1,7 @@
+{
+  "confirmation": { "id": "填写真实预约确认模板ID", "fields": { "thing1": "title", "time2": "time", "thing3": "doctor" } },
+  "visit_day": { "id": "填写真实就诊提醒模板ID", "fields": { "thing1": "title", "time2": "time" } },
+  "visit_soon": { "id": "填写真实临近就诊模板ID", "fields": { "thing1": "title", "time2": "time" } },
+  "care": { "id": "填写真实反馈提醒模板ID", "fields": { "thing1": "title", "date2": "date" } },
+  "recall": { "id": "填写真实复查模板ID", "fields": { "thing1": "title", "date2": "date" } }
+}

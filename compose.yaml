@@ -1,0 +1,17 @@
+services:
+  apex:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    env_file: server/.env
+    environment:
+      APEX_HOST: 0.0.0.0
+      APEX_PORT: 8787
+      APEX_DATA_DIR: /data
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - apex_data:/data
+volumes:
+  apex_data:

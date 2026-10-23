@@ -1,0 +1,18 @@
+# Local secrets, patient data and generated artifacts
+node_modules/
+server/data/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+miniprogram/project.private.config.json
+server/node_modules/
+server/data/*.sqlite*
+server/data/*key*.pem
+server/data/bootstrap-code.txt
+server/data/*.log
+server/data/*.pid
+server/data/backups/
+server/data/managed-backups/
+server/.env

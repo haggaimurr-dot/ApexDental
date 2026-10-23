@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict'),http=require('node:http'),{once}=require('node:events'),{DatabaseSync}=require('node:sqlite')
+const {createGuardians}=require('../guardians'),{createIdentityVerification}=require('../identity-verification')
+async function main(){const prior={url:process.env.APEX_IDENTITY_URL,key:process.env.APEX_IDENTITY_KEY,demo:process.env.APEX_DEMO_AUTH},db=new DatabaseSync(':memory:'),provider=http.createServer(async(req,res)=>{let body='';for await(const chunk of req)body+=chunk;const data=JSON.parse(body);assert.equal(data.guardianName,'Mock监护人');assert.ok(data.evidence.base64);res.setHeader('content-type','application/json');res.end(JSON.stringify({result:'match',reference:'mock-proof-reference'}))})
+ try{db.exec("CREATE TABLE family_members(id TEXT PRIMARY KEY,owner_id TEXT NOT NULL,name TEXT NOT NULL,relationship TEXT NOT NULL);INSERT INTO family_members VALUES('member','owner','Mock成员','子女')");createGuardians(db,{});db.prepare("INSERT INTO guardian_checks(id,member_id,owner_id,guardian_name,relationship,phone,birth_date,mime,bytes,digest,request_key,status,version,created_at,updated_at) VALUES('check','member','owner','Mock监护人','父亲','13800000000','2015-01-01','image/png',?,'mock','key','submitted',1,?,?)").run(Buffer.from('mock-evidence'),new Date().toISOString(),new Date().toISOString());const identity=createIdentityVerification(db),admin={id:'admin',role:'admin',isStaff:true},owner={id:'owner',role:'patient',isStaff:false}
+  await assert.rejects(identity.query(owner,'check',{version:1}),error=>error.status===403)
+  await assert.rejects(identity.query(admin,'check',{version:1}),error=>error.status===403)
+  identity.consent(owner,'check',{version:1,selected:true})
+  provider.listen(0,'127.0.0.1');await once(provider,'listening');process.env.APEX_IDENTITY_URL=`http://127.0.0.1:${provider.address().port}`;process.env.APEX_IDENTITY_KEY='mock-identity-key';process.env.APEX_DEMO_AUTH='1'
+  const result=await identity.query(admin,'check',{version:2});assert.equal(result.result.result,'match');assert.equal(result.approved,false);assert.equal(db.prepare("SELECT status FROM guardian_checks WHERE id='check'").get().status,'submitted')
+  identity.consent(owner,'check',{version:result.version,selected:false});await assert.rejects(identity.query(admin,'check',{version:result.version+1}),error=>error.status===403)
+  assert.throws(()=>identity.consent({id:'other'},'check',{version:result.version+1,selected:true}),error=>error.status===403)
+  console.log('PASS: external identity requires owner consent and an independent administrator, records auxiliary results without automatic approval, and withdrawal blocks further calls')
+ }finally{if(provider.listening)await new Promise(resolve=>provider.close(resolve));db.close();for(const [key,value] of [['APEX_IDENTITY_URL',prior.url],['APEX_IDENTITY_KEY',prior.key],['APEX_DEMO_AUTH',prior.demo]])if(value===undefined)delete process.env[key];else process.env[key]=value}
+}
+main().catch(error=>{console.error(error);process.exitCode=1})

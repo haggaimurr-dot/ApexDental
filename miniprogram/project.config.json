@@ -1,0 +1,14 @@
+{
+  "appid": "touristappid",
+  "projectname": "ApexDental-MVP",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "./",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": false,
+    "urlCheck": false,
+    "minifyWXML": true
+  }
+}
